@@ -48,7 +48,6 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         try {
             in = assetManager.open(filename);
             File inFile = StreamUtil.stream2file(in);
-//            File inFile = new File("/" + filename);
             Log.d(TAG, "outDir: " + appFileDirectory);
             File outFile = new File(appFileDirectory, filename);
             out = new FileOutputStream(outFile);
@@ -81,6 +80,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
             }
         });
 
+        // Get app path
         appFileDirectory = getFilesDir().getPath();
         executableFilePath = appFileDirectory + "/mm2";
 
@@ -97,16 +97,28 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         // (usually /data/data/your_app_name/files) with a function like this:
         //
         // See https://stackoverflow.com/a/18753500
+        this.copyAssets("coins");
         this.copyAssets("mm2");
+
+        // List files in folder
+        //Creating a File object for directory
+        File directoryPath = new File(appFileDirectory);
+        //List of all files and directories
+        String contents[] = directoryPath.list();
+        System.out.println("List of files and directories in the specified directory:");
+        for(int i=0; i<contents.length; i++) {
+            System.out.println(contents[i]);
+        }
+
         // Change the file permissions on executable_file to actually make it executable. Do it with Java calls:
         File execFile = new File(executableFilePath);
         execFile.setExecutable(true);
         // Execute the file like this
         try {
-            Process process = Runtime.getRuntime().exec(executableFilePath);
+            Process process = Runtime.getRuntime().exec(new String[]{executableFilePath, "{\"gui\":\"MM2GUI\",\"netid\":9999, \"passphrase\":\"YOUR_PASSPHRASE_HERE\", \"rpc_password\":\"YOUR_PASSWORD_HERE\"}"});
 
             BufferedReader reader = new BufferedReader(
-                    new InputStreamReader(process.getInputStream()));
+            new InputStreamReader(process.getInputStream()));
             int read;
             char[] buffer = new char[4096];
             StringBuffer output = new StringBuffer();
