@@ -12,6 +12,7 @@ import androidx.annotation.Nullable;
 
 import java.io.BufferedReader;
 import java.io.DataOutputStream;
+import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
@@ -21,6 +22,10 @@ import java.io.InputStreamReader;
  */
 
 public class MyService extends Service {
+    private static final String TAG = "MyService";
+    private static String appFileDirectory;
+    private static String executableFilePath;
+
     //creating a mediaplayer object
     private MediaPlayer player;
 
@@ -30,62 +35,38 @@ public class MyService extends Service {
         return null;
     }
 
-    int executeCommandLine(String commandLine)
-    {
-        Log.d("executeCommandLine", commandLine);
+    public void startMarketmaker() {
+
+        // Get app path
+        appFileDirectory = getFilesDir().getPath();
+        executableFilePath = appFileDirectory + "/mm2";
+
+        File directoryPath = new File(appFileDirectory);
+
+        // Execute the file like this
         try {
-            Process process = Runtime.getRuntime().exec(commandLine);
+            ProcessBuilder builder = new ProcessBuilder( executableFilePath, "{\"gui\":\"MM2GUI\",\"netid\":9999, \"passphrase\":\"YOUR_PASSPHRASE_HERE\", \"rpc_password\":\"YOUR_PASSWORD_HERE\"}");
+            builder.directory(directoryPath); // this is where you set the root folder for the executable to run with
+            builder.redirectErrorStream(true);
+            Process process =  builder.start();
 
-            BufferedReader reader = new BufferedReader(new InputStreamReader(process.getInputStream()));
-            StringBuffer output = new StringBuffer();
-            char[] buffer = new char[4096];
+            BufferedReader reader = new BufferedReader(
+                    new InputStreamReader(process.getInputStream()));
             int read;
-
+            char[] buffer = new char[4096];
+            StringBuffer output = new StringBuffer();
             while ((read = reader.read(buffer)) > 0) {
                 output.append(buffer, 0, read);
             }
-
             reader.close();
-
             process.waitFor();
 
-            Log.d("executeCommandLine", output.toString());
-
-            return process.exitValue();
+            Log.d(TAG, "output: " + output.toString());
         } catch (IOException e) {
-            throw new RuntimeException("Unable to execute '"+commandLine+"'", e);
+            e.printStackTrace();
         } catch (InterruptedException e) {
-            throw new RuntimeException("Unable to execute '"+commandLine+"'", e);
+            e.printStackTrace();
         }
-    }
-
-    public void runAsRoot(String[] cmds) throws Exception {
-        Process p = Runtime.getRuntime().exec("exec");
-        DataOutputStream os = new DataOutputStream(p.getOutputStream());
-        InputStream is = p.getInputStream();
-        for (String tmpCmd : cmds) {
-            os.writeBytes(tmpCmd+"\n");
-            int readed = 0;
-            byte[] buff = new byte[4096];
-
-            // if cmd requires an output
-            // due to the blocking behaviour of read(...)
-            boolean cmdRequiresAnOutput = true;
-            if (cmdRequiresAnOutput) {
-                while( is.available() <= 0) {
-                    try { Thread.sleep(200); } catch(Exception ex) {}
-                }
-
-                while( is.available() > 0) {
-                    readed = is.read(buff);
-                    if ( readed <= 0 ) break;
-                    String seg = new String(buff,0,readed);
-                    Log.i("#>", seg);
-                }
-            }
-        }
-        os.writeBytes("exit\n");
-        os.flush();
     }
 
     @Override
@@ -96,13 +77,11 @@ public class MyService extends Service {
         player.setLooping(true);
         player.start();
 
-//        this.executeCommandLine("/system/bin/ls /sdcard");
-        String [] cmds = {"ls \n"};
-        try {
-            this.runAsRoot(cmds);
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
+        // Get app path
+        appFileDirectory = getFilesDir().getPath();
+        executableFilePath = appFileDirectory + "/mm2";
+
+        this.startMarketmaker();
 
         //start sticky means service will be explicity started and stopped
         return START_STICKY;

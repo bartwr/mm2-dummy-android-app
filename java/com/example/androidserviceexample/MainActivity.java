@@ -103,6 +103,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         // List files in folder
         //Creating a File object for directory
         File directoryPath = new File(appFileDirectory);
+
         //List of all files and directories
         String contents[] = directoryPath.list();
         System.out.println("List of files and directories in the specified directory:");
@@ -113,30 +114,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         // Change the file permissions on executable_file to actually make it executable. Do it with Java calls:
         File execFile = new File(executableFilePath);
         execFile.setExecutable(true);
-        // Execute the file like this
-        try {
-            ProcessBuilder builder = new ProcessBuilder( executableFilePath, "{\"gui\":\"MM2GUI\",\"netid\":9999, \"passphrase\":\"YOUR_PASSPHRASE_HERE\", \"rpc_password\":\"YOUR_PASSWORD_HERE\"}");
-            builder.directory( directoryPath ); // this is where you set the root folder for the executable to run with
-            builder.redirectErrorStream(true);
-            Process process =  builder.start();
 
-            BufferedReader reader = new BufferedReader(
-            new InputStreamReader(process.getInputStream()));
-            int read;
-            char[] buffer = new char[4096];
-            StringBuffer output = new StringBuffer();
-            while ((read = reader.read(buffer)) > 0) {
-                output.append(buffer, 0, read);
-            }
-            reader.close();
-            process.waitFor();
-
-            Log.d(TAG, "output: " + output.toString());
-        } catch (IOException e) {
-            e.printStackTrace();
-        } catch (InterruptedException e) {
-            e.printStackTrace();
-        }
     }
 
     @Override
