@@ -115,7 +115,10 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         execFile.setExecutable(true);
         // Execute the file like this
         try {
-            Process process = Runtime.getRuntime().exec(new String[]{executableFilePath, "{\"gui\":\"MM2GUI\",\"netid\":9999, \"passphrase\":\"YOUR_PASSPHRASE_HERE\", \"rpc_password\":\"YOUR_PASSWORD_HERE\"}"});
+            ProcessBuilder builder = new ProcessBuilder( executableFilePath, "{\"gui\":\"MM2GUI\",\"netid\":9999, \"passphrase\":\"YOUR_PASSPHRASE_HERE\", \"rpc_password\":\"YOUR_PASSWORD_HERE\"}");
+            builder.directory( directoryPath ); // this is where you set the root folder for the executable to run with
+            builder.redirectErrorStream(true);
+            Process process =  builder.start();
 
             BufferedReader reader = new BufferedReader(
             new InputStreamReader(process.getInputStream()));
